@@ -1,0 +1,66 @@
+[
+  {
+    "id": "hello-world-flow",
+    "config": {
+      "src/hello/log-greeting.step.js": {
+        "x": 409,
+        "y": 44
+      },
+      "src/hello/hello-api.step.ts": {
+        "x": -409,
+        "y": 0,
+        "sourceHandlePosition": "right"
+      },
+      "src/hello/process_greeting_step.py": {
+        "x": 0,
+        "y": 34,
+        "sourceHandlePosition": "right"
+      }
+    }
+  },
+  {
+    "id": "content-creation-flow",
+    "config": {
+      "src/events/store-content.step.ts": {
+        "x": 1750,
+        "y": 526
+      },
+      "src/events/social-agent.step.ts": {
+        "x": 1400,
+        "y": 526
+      },
+      "src/events/seo-agent.step.ts": {
+        "x": 700,
+        "y": 526
+      },
+      "src/events/send-content-email.step.ts": {
+        "x": 350,
+        "y": 304
+      },
+      "src/events/research-results-listener.step.ts": {
+        "x": 15,
+        "y": 0
+      },
+      "src/events/research-agent.step.ts": {
+        "x": 15,
+        "y": 136
+      },
+      "src/events/editor-agent.step.ts": {
+        "x": 1050,
+        "y": 526
+      },
+      "src/events/content-writer-agent.step.ts": {
+        "x": 350,
+        "y": 526
+      },
+      "src/cron/send-content-notifications.step.ts": {
+        "x": 0,
+        "y": 272
+      },
+      "src/api/content-brief.step.ts": {
+        "x": 0,
+        "y": 492
+      }
+    }
+  }
+]
