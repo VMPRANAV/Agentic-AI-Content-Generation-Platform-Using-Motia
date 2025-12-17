@@ -25,7 +25,7 @@ const getPool = (): Pool => {
 };
 
 export const db = {
-  query: <T = any>(text: string, params?: any[]): Promise<QueryResult<T>> =>
+  query: <T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> =>
     getPool().query<T>(text, params),
   connect: (): Promise<PoolClient> => getPool().connect(),
 };

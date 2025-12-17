@@ -24,7 +24,7 @@
     "@types/pg": "^8.16.0",
     "motia": "^0.17.6-beta.187",
     "pg": "^8.16.3",
-    "zod": "^4.1.12"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@motiadev/workbench": "^0.17.6-beta.187",
