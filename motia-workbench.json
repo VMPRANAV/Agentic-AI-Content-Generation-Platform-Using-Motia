@@ -22,8 +22,8 @@
     "id": "content-creation-flow",
     "config": {
       "src/events/store-content.step.ts": {
-        "x": 1750,
-        "y": 526
+        "x": 1777,
+        "y": 527
       },
       "src/events/social-agent.step.ts": {
         "x": 1400,
@@ -34,24 +34,24 @@
         "y": 526
       },
       "src/events/send-content-email.step.ts": {
-        "x": 350,
-        "y": 304
+        "x": 383,
+        "y": 306
       },
       "src/events/research-results-listener.step.ts": {
-        "x": 15,
-        "y": 0
+        "x": 35,
+        "y": -33
       },
       "src/events/research-agent.step.ts": {
-        "x": 15,
-        "y": 136
+        "x": 6,
+        "y": 109
       },
       "src/events/editor-agent.step.ts": {
         "x": 1050,
         "y": 526
       },
       "src/events/content-writer-agent.step.ts": {
-        "x": 350,
-        "y": 526
+        "x": 352,
+        "y": 522
       },
       "src/cron/send-content-notifications.step.ts": {
         "x": 0,

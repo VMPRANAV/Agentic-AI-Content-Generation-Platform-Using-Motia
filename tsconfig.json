@@ -1,8 +1,9 @@
-{ 
+{
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "typeRoots": ["./node_modules/@types"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -22,7 +23,8 @@
     "motia.config.ts",
     "src/**/*.tsx",
     "types.d.ts",
-    "src/**/*.jsx"
+    "src/**/*.jsx",
+    "src/services/agents/llm-factory.ts"
   ],
   "exclude": [
     "node_modules",

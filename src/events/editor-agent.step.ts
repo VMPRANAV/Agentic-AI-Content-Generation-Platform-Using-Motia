@@ -1,4 +1,4 @@
-import type { EventConfig, Handlers } from 'motia';
+import type { EventConfig } from 'motia';
 import { z } from 'zod';
 import { agentService } from '../services/agents/index';
 
@@ -23,6 +23,9 @@ const inputSchema = z.object({
   }),
 });
 
+// 1. Generate Type from Schema
+type EditorAgentInput = z.infer<typeof inputSchema>;
+
 export const config: EventConfig = {
   name: 'EditorAgent',
   type: 'event',
@@ -33,7 +36,17 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['EditorAgent'] = async (input, { emit, logger, state }) => {
+// 2. Explicitly type the Context object
+export const handler = async (
+  input: EditorAgentInput, 
+  context: { 
+    emit: (event: any) => Promise<void>; 
+    logger: { info: Function; error: Function; warn: Function }; 
+    state: { get: Function; set: Function } 
+  }
+) => {
+  const { emit, logger, state } = context;
+
   try {
     const { briefId, draft, seo } = input;
 
@@ -43,6 +56,7 @@ export const handler: Handlers['EditorAgent'] = async (input, { emit, logger, st
     const researchData = await state.get(`content-${briefId}`, 'research');
 
     // Edit and fact-check content
+    // Note: ensure agentService.editAndFactCheck accepts (string, string, any)
     const editedContent = await agentService.editAndFactCheck(briefId, draft.draft, researchData);
 
     // Store edited content in state
@@ -68,4 +82,3 @@ export const handler: Handlers['EditorAgent'] = async (input, { emit, logger, st
     throw error;
   }
 };
-

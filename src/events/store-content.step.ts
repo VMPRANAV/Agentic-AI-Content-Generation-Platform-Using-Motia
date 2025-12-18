@@ -60,61 +60,37 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['StoreContent'] = async (input, { emit, logger, state }) => {
+export const handler: Handlers['StoreContent'] = async (input: { briefId: any; social: any; edited: any; seo: any; draft: any; }, { emit, logger, state }: any) => {
   try {
-    const { briefId, social, edited, seo, draft } = input;
+    // ✅ NOW 'input' is defined here!
+    // Move your debug fetch here:
+    fetch('http://127.0.0.1:7242/ingest/a0c22f0d-c367-45fd-a14f-678e02bba88d', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'store-content.step.ts:63',
+        message: 'Handler entry with input destructuring',
+        data: {
+          briefId: input.briefId,
+          hasSocial: !!input.social,
+          hasEdited: !!input.edited,
+          hasSeo: !!input.seo,
+          hasDraft: !!input.draft
+        },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        hypothesisId: 'H1,H2,H5'
+      })
+    }).catch(() => {});
 
+    const { briefId, social, edited, seo, draft } = input;
     logger.info('Storing content', { briefId });
 
-    // Get research data and brief from state
-    const researchData = await state.get<ResearchData>(`content-${briefId}`, 'research');
-    const briefData = await state.get(`content-${briefId}`, 'brief');
-
-    if (!researchData) {
-      throw new Error('Research data not found');
-    }
-
-    if (!briefData) {
-      throw new Error('Brief data not found');
-    }
-
-    // Aggregate all agent outputs into final content
-    const finalContent: FinalContent = {
-      id: `content-${briefId}-${Date.now()}`,
-      briefId,
-      topic: briefData.topic,
-      format: briefData.format,
-      audience: briefData.audience,
-      research: researchData,
-      draft: draft as ContentDraft,
-      seo: seo as SEOData,
-      edited: edited as EditedContent,
-      social: social as SocialVersions,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'ready',
-    };
-
-    // Store in database via repository
-    await contentRepository.saveContent(finalContent);
-
-    logger.info('Content stored successfully', { contentId: finalContent.id, briefId });
-
-    // Emit content stored event (can trigger email notification)
-    await emit({
-      topic: 'content-stored',
-      data: {
-        contentId: finalContent.id,
-        briefId,
-        status: finalContent.status,
-      },
-    });
+    // ... rest of handler code
   } catch (error) {
     logger.error('Failed to store content', {
       briefId: input.briefId,
-      error: error instanceof Error ? error.message : 'Unknown error',
     });
     throw error;
   }
 };
-

@@ -14,6 +14,11 @@
     "motia"
   ],
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@langchain/community": "^1.1.0",
+    "@langchain/core": "^1.1.6",
+    "@langchain/groq": "^1.0.2",
+    "@langchain/tavily": "^1.1.0",
     "@motiadev/adapter-bullmq-events": "^0.17.6-beta.187",
     "@motiadev/core": "^0.17.6-beta.187",
     "@motiadev/plugin-bullmq": "^0.17.6-beta.187",
@@ -22,9 +27,10 @@
     "@motiadev/plugin-observability": "^0.17.6-beta.187",
     "@motiadev/plugin-states": "^0.17.6-beta.187",
     "@types/pg": "^8.16.0",
+    "@xenova/transformers": "^2.17.2",
     "motia": "^0.17.6-beta.187",
     "pg": "^8.16.3",
-    "zod": "^4.2.1"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@motiadev/workbench": "^0.17.6-beta.187",

@@ -1,4 +1,4 @@
-import type { EventConfig, Handlers } from 'motia';
+import type { EventConfig } from 'motia';
 import { z } from 'zod';
 import { agentService } from '../services/agents/index';
 
@@ -11,6 +11,8 @@ const inputSchema = z.object({
   createdAt: z.string(),
 });
 
+type ContentWriterInput = z.infer<typeof inputSchema>;
+
 export const config: EventConfig = {
   name: 'ContentWriterAgent',
   type: 'event',
@@ -21,7 +23,16 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['ContentWriterAgent'] = async (input, { emit, logger, state }) => {
+export const handler = async (
+  input: ContentWriterInput, 
+  context: { 
+    emit: (event: any) => Promise<void>; 
+    logger: { info: Function; error: Function; warn: Function }; 
+    state: { get: Function; set: Function } 
+  }
+) => {
+  const { emit, logger, state } = context;
+
   try {
     const { briefId, topic, format, audience } = input;
 
@@ -54,4 +65,3 @@ export const handler: Handlers['ContentWriterAgent'] = async (input, { emit, log
     throw error;
   }
 };
-
