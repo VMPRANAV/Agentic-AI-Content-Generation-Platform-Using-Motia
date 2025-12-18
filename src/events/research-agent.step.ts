@@ -1,42 +1,55 @@
-import type { EventConfig, Handlers } from 'motia';
+import { EventConfig } from 'motia';
 import { z } from 'zod';
+import { agentService } from '../services/agents/index';
 
-// Define the shape of your research data (optional, but recommended)
-// This should match what your ResearchAgent actually returns
-const researchDataSchema = z.object({
-  keyFindings: z.array(z.string()).optional(),
-  summary: z.string().optional(),
-  sources: z.array(z.string()).optional(),
-}).passthrough(); // allows other fields to pass through
-
+// Input schema should match content-brief-created event
 const inputSchema = z.object({
   briefId: z.string(),
-  research: researchDataSchema,
+  topic: z.string(),
+  format: z.string(),
+  audience: z.string(),
+  additionalRequirements: z.string().optional(),
+  createdAt: z.string(),
 });
 
 export const config: EventConfig = {
   name: 'ResearchAgent',
   type: 'event',
-  description: 'Consumes research-completed payload',
-  subscribes: ['research-completed'],
-  emits: [],
+  description: 'Performs research when content brief is created',
+  subscribes: ['content-brief-created'],
+  emits: ['research-completed'],
   input: inputSchema,
   flows: ['content-creation-flow'],
 };
 
 export const handler = async (
   input: z.infer<typeof inputSchema>,
-  { logger }: { logger: any }
+  { emit, logger, state }: any
 ) => {
-  const { briefId, research } = input;
+  const { briefId, topic, audience } = input;
 
-  logger.info('Research results received', {
-    briefId,
-    dataSize: JSON.stringify(research).length 
-  });
+  try {
+    logger.info('Starting research', { briefId, topic });
+    
+    // Perform the actual research
+    const researchResults = await agentService.performResearch(briefId, topic, audience);
+    
+    // Store research results in state for other agents to access
+    await state.set(`content-${briefId}`, 'research', researchResults.research);
+    
+    // Emit research-completed event
+    await emit({
+      topic: 'research-completed',
+      data: researchResults
+    });
 
-  // Example processing: Accessing the typed data
-  if (research.summary) {
-     logger.info('Research Summary:', { summary: research.summary });
+    logger.info('Research completed', { briefId });
+    
+  } catch (error) {
+    logger.error('Research failed', { 
+      briefId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    throw error;
   }
 };

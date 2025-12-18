@@ -1,6 +1,7 @@
 import type { EventConfig, Handlers } from 'motia';
 import { z } from 'zod';
 import { agentService } from '../services/agents/index';
+// import type { ContentBrief } from '../types/content'; // Uncomment if file exists
 
 const inputSchema = z.object({
   briefId: z.string(),
@@ -13,6 +14,8 @@ const inputSchema = z.object({
   }),
 });
 
+type SEOAgentInput = z.infer<typeof inputSchema>;
+
 export const config: EventConfig = {
   name: 'SEOAgent',
   type: 'event',
@@ -23,25 +26,34 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['SEOAgent'] = async (input, { emit, logger, state }) => {
+// FIX: We manually define the type for 'context' here 👇
+// This guarantees the 'implicit any' error disappears.
+export const handler = async (
+  input: SEOAgentInput, 
+  context: { 
+    emit: (event: any) => Promise<void>; 
+    logger: { info: Function; error: Function; warn: Function }; 
+    state: { get: Function; set: Function } 
+  }
+) => {
+  const { emit, logger, state } = context;
+
   try {
     const { briefId, draft } = input;
 
     logger.info('SEO agent started', { briefId });
 
-    // Get brief data from state to get topic
-    const briefData = await state.get(`content-${briefId}`, 'brief');
-    const topic = briefData?.topic || '';
+    // We cast this safely because we trust the state has the brief
+    const briefData = await state.get(`content-${briefId}`, 'brief') as { topic: string };
+    
+    if (!briefData) throw new Error("Brief data missing from state");
 
-    // Optimize for SEO
-    const seoData = await agentService.optimizeSEO(briefId, draft.draft, topic);
+    const seoData = await agentService.optimizeSEO(briefId, draft.draft, briefData.topic);
 
-    // Store SEO data in state
     await state.set(`content-${briefId}`, 'seo', seoData);
 
     logger.info('SEO optimization completed', { briefId, score: seoData.score });
 
-    // Emit SEO completed event
     await emit({
       topic: 'seo-optimization-completed',
       data: {
@@ -58,4 +70,3 @@ export const handler: Handlers['SEOAgent'] = async (input, { emit, logger, state
     throw error;
   }
 };
-

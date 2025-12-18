@@ -1,4 +1,4 @@
-import type { EventConfig, Handlers } from 'motia';
+import type { Handlers } from 'motia';
 import { z } from 'zod';
 import { notificationService } from '../services/notifications/index';
 import { contentRepository } from '../repositories/content/index';
@@ -9,7 +9,9 @@ const inputSchema = z.object({
   email: z.string().email().optional(),
 });
 
-export const config: EventConfig = {
+type Input = z.infer<typeof inputSchema>;
+
+export const config = {
   name: 'SendContentEmail',
   type: 'event',
   description: 'Sends email notification with final content outputs',
@@ -19,7 +21,7 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['SendContentEmail'] = async (input, { logger }) => {
+export const handler: Handlers['SendContentEmail'] = async (input: Input, { logger }) => {
   try {
     const { contentId, email } = input;
 

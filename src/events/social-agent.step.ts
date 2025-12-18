@@ -1,6 +1,7 @@
-import type { EventConfig, Handlers } from 'motia';
+import type { EventConfig } from 'motia';
 import { z } from 'zod';
 import { agentService } from '../services/agents/index';
+// import type { ContentBrief } from '../types/content'; // Optional: for cleaner casting
 
 const inputSchema = z.object({
   briefId: z.string(),
@@ -35,6 +36,8 @@ const inputSchema = z.object({
   }),
 });
 
+type SocialAgentInput = z.infer<typeof inputSchema>;
+
 export const config: EventConfig = {
   name: 'SocialAgent',
   type: 'event',
@@ -45,14 +48,23 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['SocialAgent'] = async (input, { emit, logger, state }) => {
+export const handler = async (
+  input: SocialAgentInput, 
+  context: { 
+    emit: (event: any) => Promise<void>; 
+    logger: { info: Function; error: Function; warn: Function }; 
+    state: { get: Function; set: Function } 
+  }
+) => {
+  const { emit, logger, state } = context;
+
   try {
     const { briefId, edited } = input;
 
     logger.info('Social agent started', { briefId });
 
-    // Get brief data for topic
-    const briefData = await state.get(`content-${briefId}`, 'brief');
+    // Cleanly retrieve topic from state
+    const briefData = await state.get(`content-${briefId}`, 'brief') as { topic: string };
     const topic = briefData?.topic || '';
 
     // Generate social media versions
@@ -82,4 +94,3 @@ export const handler: Handlers['SocialAgent'] = async (input, { emit, logger, st
     throw error;
   }
 };
-
