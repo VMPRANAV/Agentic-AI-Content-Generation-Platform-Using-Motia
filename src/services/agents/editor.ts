@@ -1,41 +1,50 @@
+// src/services/agents/editor.ts
+import { z } from "zod";
+import { createGroqLLM } from './llm-factory';
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import type { EditedContent } from '../../types/content';
 
-export async function editAndFactCheck(
-  briefId: string,
-  content: string,
-  researchData?: any
-): Promise<EditedContent> {
-  // TODO: Integrate with fact-checking APIs and AI editing tools
-  // For now, return mock data structure
-  
-  const editedContent: EditedContent = {
+const editorSchema = z.object({
+  refinedContent: z.string().describe("The improved version of the text"),
+  factCheckResults: z.array(z.object({
+    claim: z.string(),
+    verified: z.boolean(),
+    source: z.string().optional(),
+  })),
+  improvements: z.array(z.string()),
+  qualityScore: z.number(),
+});
+
+export async function editAndFactCheck(briefId: string, content: string, researchData?: any): Promise<EditedContent> {
+  const llm = createGroqLLM(0.3); // Low temp for quality control
+  const structuredLlm = llm.withStructuredOutput(editorSchema);
+
+  console.log(`📝 [Editor] Polishing content...`);
+
+  // Pass research data so the editor knows what is "true"
+  const facts = researchData?.keyFindings ? JSON.stringify(researchData.keyFindings) : "General knowledge";
+
+  const result = await structuredLlm.invoke([
+    new SystemMessage(`You are a Senior Editor. Fix grammar, improve flow, and verify facts against the provided research.`),
+    new HumanMessage(`
+      Verified Facts: ${facts}
+      
+      Draft Content:
+      ${content}
+      
+      Task:
+      1. Rewrite weak sections for clarity.
+      2. Flag any claims that contradict the facts.
+      3. Give a quality score (0-100).
+    `)
+  ]);
+
+  return {
     briefId,
-    content: content + '\n\n[Edited and refined version with improved clarity and accuracy]',
-    factCheckResults: [
-      {
-        claim: 'Sample claim 1',
-        verified: true,
-        source: 'https://example.com/verification',
-      },
-      {
-        claim: 'Sample claim 2',
-        verified: true,
-        source: 'https://example.com/verification2',
-      },
-    ],
-    improvements: [
-      'Improved sentence structure',
-      'Enhanced clarity',
-      'Added missing context',
-      'Corrected grammar and spelling',
-    ],
-    qualityScore: 92,
+    content: result.refinedContent,
+    factCheckResults: result.factCheckResults,
+    improvements: result.improvements,
+    qualityScore: result.qualityScore,
     completedAt: new Date().toISOString(),
   };
-
-  // Simulate async editing process
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  return editedContent;
 }
-

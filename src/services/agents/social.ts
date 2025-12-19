@@ -1,31 +1,48 @@
+// src/services/agents/social.ts
+import { z } from "zod";
+import { createGroqLLM } from './llm-factory';
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import type { SocialVersions } from '../../types/content';
 
-export async function generateSocialVersions(
-  briefId: string,
-  content: string,
-  topic: string
-): Promise<SocialVersions> {
-  // TODO: Integrate with AI to generate social media versions
-  // For now, return mock data structure
-  
-  const socialVersions: SocialVersions = {
+const socialSchema = z.object({
+  twitter: z.object({
+    text: z.string(),
+    hashtags: z.array(z.string()),
+  }),
+  linkedin: z.object({
+    text: z.string(),
+    hashtags: z.array(z.string()),
+  }),
+});
+
+export async function generateSocialVersions(briefId: string, content: string, topic: string): Promise<SocialVersions> {
+  const llm = createGroqLLM(0.7); // High temp for creativity
+  const structuredLlm = llm.withStructuredOutput(socialSchema);
+
+  console.log(`📢 [Social] Generating posts...`);
+
+  const result = await structuredLlm.invoke([
+    new SystemMessage(`You are a Social Media Manager. Create viral content based on the article provided.`),
+    new HumanMessage(`
+      Topic: ${topic}
+      Article Summary: ${content.substring(0, 1000)}...
+      
+      Task:
+      1. Write a punchy Tweet (under 280 chars) with 2 hashtags.
+      2. Write a professional LinkedIn post with bullet points and 3 hashtags.
+    `)
+  ]);
+
+  return {
     briefId,
     twitter: {
-      text: `🚀 New: ${topic}\n\nKey insights and takeaways from our latest research. Check it out! 👇\n\n#${topic.replace(/\s+/g, '')} #Content`,
-      hashtags: [topic.replace(/\s+/g, ''), 'Content', 'Insights'],
-      characterCount: 140,
+      ...result.twitter,
+      characterCount: result.twitter.text.length,
     },
     linkedin: {
-      text: `Excited to share our latest insights on ${topic}.\n\nIn this comprehensive guide, we explore:\n• Key trends and developments\n• Best practices and recommendations\n• Actionable insights for professionals\n\nRead the full article: [Link]\n\n#${topic.replace(/\s+/g, '')} #ProfessionalDevelopment #Content`,
-      hashtags: [topic.replace(/\s+/g, ''), 'ProfessionalDevelopment', 'Content', 'Insights'],
-      characterCount: 280,
+      ...result.linkedin,
+      characterCount: result.linkedin.text.length,
     },
     completedAt: new Date().toISOString(),
   };
-
-  // Simulate async social content generation
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  return socialVersions;
 }
-
