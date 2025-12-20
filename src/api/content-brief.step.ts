@@ -17,7 +17,7 @@ export const config: ApiRouteConfig = {
   description: 'Submit a content brief to trigger AI-powered content creation',
   emits: ['content-brief-created'],
   flows: ['content-creation-flow'],
-  bodySchema,
+  bodySchema: bodySchema as any, // Type assertion to bypass strict Zod generic checking
   responseSchema: {
     201: z.object({
       briefId: z.string(),

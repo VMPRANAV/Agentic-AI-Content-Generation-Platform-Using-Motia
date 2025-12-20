@@ -1,7 +1,7 @@
 import type { EventConfig, Handlers } from 'motia';
 import { z } from 'zod';
 import { contentRepository } from '../repositories/content/index';
-import type { FinalContent, ResearchData, ContentDraft, SEOData, EditedContent, SocialVersions } from '../types/content';
+import type { FinalContent } from '../types/content';
 
 const inputSchema = z.object({
   briefId: z.string(),
@@ -60,36 +60,54 @@ export const config: EventConfig = {
   flows: ['content-creation-flow'],
 };
 
-export const handler: Handlers['StoreContent'] = async (input: { briefId: any; social: any; edited: any; seo: any; draft: any; }, { emit, logger, state }: any) => {
+export const handler: Handlers['StoreContent'] = async (
+  input: z.infer<typeof inputSchema>, 
+  { emit, logger, state }: any
+) => {
   try {
-    // ✅ NOW 'input' is defined here!
-    // Move your debug fetch here:
-    fetch('http://127.0.0.1:7242/ingest/a0c22f0d-c367-45fd-a14f-678e02bba88d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'store-content.step.ts:63',
-        message: 'Handler entry with input destructuring',
-        data: {
-          briefId: input.briefId,
-          hasSocial: !!input.social,
-          hasEdited: !!input.edited,
-          hasSeo: !!input.seo,
-          hasDraft: !!input.draft
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'H1,H2,H5'
-      })
-    }).catch(() => {});
-
     const { briefId, social, edited, seo, draft } = input;
     logger.info('Storing content', { briefId });
 
-    // ... rest of handler code
+    // 1. Retrieve the original Brief and Research data from State
+    // (We need these to construct the full FinalContent object)
+    const brief = await state.get(`content-${briefId}`, 'brief');
+    const research = await state.get(`content-${briefId}`, 'research');
+
+    if (!brief) throw new Error(`Brief data not found for ${briefId}`);
+    if (!research) logger.warn(`Research data missing for ${briefId}, proceeding without it.`);
+
+    // 2. Construct the FinalContent object
+    const finalContent: FinalContent = {
+      id: `content-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      briefId,
+      topic: brief.topic,
+      format: brief.format,
+      audience: brief.audience,
+      research: research || { keyFindings: [], sources: [], statistics: {}, completedAt: new Date().toISOString() },
+      draft,
+      seo,
+      edited,
+      social,
+      createdAt: brief.createdAt,
+      updatedAt: new Date().toISOString(),
+      status: 'ready',
+    };
+
+    // 3. Save to Repository
+    await contentRepository.saveContent(finalContent);
+
+    logger.info('Content saved to repository', { briefId, contentId: finalContent.id });
+
+    // 4. Emit completed event
+    await emit({
+      topic: 'content-stored',
+      data: finalContent,
+    });
+
   } catch (error) {
     logger.error('Failed to store content', {
       briefId: input.briefId,
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
     throw error;
   }
