@@ -12,16 +12,17 @@ declare module 'motia' {
   }
 
   interface Handlers {
-    'StoreContent': EventHandler<unknown, never>
+    'StoreContent': EventHandler<unknown, { topic: 'content-stored'; data: unknown }>
     'SocialAgent': EventHandler<unknown, { topic: 'social-versions-completed'; data: unknown }>
     'SEOAgent': EventHandler<unknown, { topic: 'seo-optimization-completed'; data: unknown }>
     'SendContentEmail': EventHandler<unknown, never>
     'ResearchResultsListener': EventHandler<unknown, never>
-    'ResearchAgent': EventHandler<unknown, { topic: 'research-completed'; data: unknown }>
+    'ResearchAgent': EventHandler<unknown, { topic: 'research-completed'; data: never }>
+    'InstantNotificationListener': EventHandler<unknown, { topic: 'send-content-email'; data: unknown }>
     'EditorAgent': EventHandler<unknown, { topic: 'editing-completed'; data: unknown }>
     'ContentWriterAgent': EventHandler<unknown, { topic: 'content-draft-completed'; data: unknown }>
-    'SendContentNotifications': CronHandler<{ topic: 'send-content-email'; data: unknown }>
-    'ContentBrief': ApiRouteHandler<unknown, ApiResponse<201, unknown> | ApiResponse<400, unknown> | ApiResponse<500, unknown>, { topic: 'content-brief-created'; data: never }>
+    'SendContentNotifications': CronHandler<never>
+    'ContentBrief': ApiRouteHandler<unknown, ApiResponse<201, unknown> | ApiResponse<400, unknown> | ApiResponse<500, unknown>, { topic: 'content-brief-created'; data: unknown }>
   }
     
 }

@@ -45,6 +45,10 @@
         "x": 6,
         "y": 109
       },
+      "src/events/instant-notification.step.ts": {
+        "x": 2450,
+        "y": 327
+      },
       "src/events/editor-agent.step.ts": {
         "x": 1050,
         "y": 526
