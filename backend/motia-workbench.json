@@ -31,7 +31,7 @@
       },
       "src/events/seo-agent.step.ts": {
         "x": 700,
-        "y": 526
+        "y": 517
       },
       "src/events/send-content-email.step.ts": {
         "x": 383,

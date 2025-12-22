@@ -22,7 +22,7 @@ declare module 'motia' {
     'EditorAgent': EventHandler<unknown, { topic: 'editing-completed'; data: unknown }>
     'ContentWriterAgent': EventHandler<unknown, { topic: 'content-draft-completed'; data: unknown }>
     'SendContentNotifications': CronHandler<never>
-    'ContentBrief': ApiRouteHandler<unknown, ApiResponse<201, unknown> | ApiResponse<400, unknown> | ApiResponse<500, unknown>, { topic: 'content-brief-created'; data: unknown }>
+    'ContentBrief': ApiRouteHandler<unknown, ApiResponse<201, { briefId: string; status: string; message: string }> | ApiResponse<400, { error: string }> | ApiResponse<500, { error: string }>, { topic: 'content-brief-created'; data: unknown }>
   }
     
 }

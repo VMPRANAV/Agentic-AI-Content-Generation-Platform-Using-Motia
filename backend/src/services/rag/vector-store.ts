@@ -1,5 +1,5 @@
 import { PGVectorStore } from "@langchain/community/vectorstores/pgvector";
-import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
+import { CohereEmbeddings } from "@langchain/cohere";
 import { PoolConfig } from "pg";
 
 const config = {
@@ -17,13 +17,13 @@ const config = {
 };
 
 export const getVectorStore = async () => {
-  // Uses 'Xenova/all-MiniLM-L6-v2' by default (running locally)
-  const embeddings = new HuggingFaceTransformersEmbeddings({
-    model: "Xenova/all-MiniLM-L6-v2", 
+  const embeddings = new CohereEmbeddings({
+    apiKey: process.env.COHERE_API_KEY, // In Node.js defaults to process.env.COHERE_API_KEY
+    batchSize: 48, // Default value if omitted is 48. Max value is 96
+    model: "embed-english-v3.0",
   });
 
   return await PGVectorStore.initialize(
-
     embeddings, 
     config
   );

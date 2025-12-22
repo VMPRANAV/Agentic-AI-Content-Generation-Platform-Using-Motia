@@ -19,17 +19,32 @@ export const config: ApiRouteConfig = {
   flows: ['content-creation-flow'],
   bodySchema: bodySchema as any, // Type assertion to bypass strict Zod generic checking
   responseSchema: {
-    201: z.object({
-      briefId: z.string(),
-      status: z.string(),
-      message: z.string(),
-    }),
-    400: z.object({
-      error: z.string(),
-    }),
-    500: z.object({
-      error: z.string(),
-    }),
+    201: {
+      type: 'object',
+      properties: {
+        briefId: { type: 'string' },
+        status: { type: 'string' },
+        message: { type: 'string' },
+      },
+      required: ['briefId', 'status', 'message'],
+      additionalProperties: false,
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+      },
+      required: ['error'],
+      additionalProperties: false,
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+      },
+      required: ['error'],
+      additionalProperties: false,
+    },
   },
 };
 
@@ -96,11 +111,13 @@ export const handler = async (req: any, { emit, logger, state }: any) => {
       };
     }
 
-    logger.error('Content brief creation failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Content brief creation failed', { error: errorMessage, stack: error instanceof Error ? error.stack : undefined });
+    
     return {
       status: 500,
       body: {
-        error: 'Failed to create content brief',
+        error: `Failed to create content brief: ${errorMessage}`,
       },
     };
   }
